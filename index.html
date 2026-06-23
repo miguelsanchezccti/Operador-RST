@@ -39,18 +39,18 @@
     .hdr-date{font-size:10px;color:var(--t3);margin-top:1px;text-align:right;}
 
     /* ── Body scroll ── */
-    .body{flex:1;padding:14px;display:flex;flex-direction:column;gap:12px;overflow-y:auto;}
+    .body{flex:1;padding:10px 14px;display:flex;flex-direction:column;gap:8px;overflow-y:auto;}
 
     /* ── Footer fijo ── */
     .footer{
-      padding:12px 14px;background:var(--sf);
+      padding:10px 14px;background:var(--sf);
       border-top:1px solid var(--bd);flex-shrink:0;
-      display:flex;flex-direction:column;gap:8px;
+      display:flex;flex-direction:column;gap:6px;
       position:sticky;bottom:0;z-index:10;
     }
 
     /* ── Cards ── */
-    .card{background:var(--sf2);border:1px solid var(--bd);border-radius:12px;padding:14px;}
+    .card{background:var(--sf2);border:1px solid var(--bd);border-radius:12px;padding:11px;}
     .card.ac{border-color:rgba(0,200,255,.3);background:rgba(0,200,255,.04);}
     .card.gn{border-color:rgba(0,230,118,.3);background:rgba(0,230,118,.04);}
     .card.am{border-color:rgba(240,165,0,.3);background:rgba(240,165,0,.04);}
@@ -68,8 +68,8 @@
 
     /* ── Botones de acción ── */
     .btn{
-      width:100%;padding:18px;border-radius:12px;border:none;cursor:pointer;
-      font-size:18px;font-weight:800;letter-spacing:.3px;
+      width:100%;padding:16px;border-radius:12px;border:none;cursor:pointer;
+      font-size:17px;font-weight:800;letter-spacing:.3px;
       display:flex;align-items:center;justify-content:center;gap:8px;
       -webkit-appearance:none;
     }
@@ -85,14 +85,14 @@
     .op-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
     .op-btn{
       background:var(--sf2);border:2px solid var(--bd);border-radius:12px;
-      padding:20px 12px;text-align:center;cursor:pointer;
+      padding:14px 12px;text-align:center;cursor:pointer;
       transition:border-color .15s,background .15s;
       -webkit-tap-highlight-color:transparent;
     }
     .op-btn:active{opacity:.8;}
     .op-btn.sel{border-color:var(--ac);background:rgba(0,200,255,.08);}
-    .op-icon{font-size:36px;display:block;margin-bottom:6px;}
-    .op-name{font-size:18px;font-weight:700;color:var(--tx);}
+    .op-icon{font-size:28px;display:block;margin-bottom:4px;}
+    .op-name{font-size:16px;font-weight:700;color:var(--tx);}
     .op-role{font-size:11px;color:var(--t2);margin-top:2px;text-transform:uppercase;letter-spacing:.5px;}
 
     /* ── Stats row ── */
@@ -105,7 +105,7 @@
     .hor-inp{
       width:100%;background:var(--sf);border:2px solid var(--am);
       border-radius:10px;padding:14px;text-align:center;
-      font-size:28px;font-weight:700;color:var(--am);letter-spacing:2px;
+      font-size:22px;font-weight:700;color:var(--am);letter-spacing:2px;
       -webkit-appearance:none;
     }
     .hor-inp:focus{outline:none;border-color:var(--ac);color:var(--tx);}
@@ -178,7 +178,7 @@
   </div>
 
   <div class="body">
-    <div class="card"><div class="lbl">¿Quién opera hoy?</div></div>
+    <div style="padding:4px 0;"><div class="lbl">¿Quién opera hoy?</div></div>
 
     <div class="op-grid">
       <div class="op-btn" id="op-joel" onclick="selOp('Joel','RS1')">
@@ -193,7 +193,7 @@
       </div>
     </div>
 
-    <div class="op-btn" id="op-otro" onclick="selOp('Otro','Op')" style="text-align:center;padding:14px;">
+    <div class="op-btn" id="op-otro" onclick="selOp('Otro','Op')" style="text-align:center;padding:10px;display:flex;align-items:center;justify-content:center;gap:10px;">
       <span class="op-icon" style="font-size:24px;">🙋</span>
       <span class="op-name" style="font-size:15px;"> Otro operador</span>
     </div>
