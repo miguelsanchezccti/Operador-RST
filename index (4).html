@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#0a0e17">
+  <title>RS Operator · CCTI</title>
+  <style>
+    /* ── Reset & base ── */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg:    #0a0e17;
+      --sf:    #141a27;
+      --sf2:   #1c2438;
+      --bd:    #2a3550;
+      --ac:    #00c8ff;
+      --gn:    #00e676;
+      --am:    #f0a500;
+      --rd:    #ff4d6d;
+      --tx:    #e8f0f8;
+      --t2:    #6b82a0;
+      --t3:    #3a4f6a;
+      --mn:    'IBM Plex Mono', monospace;
+      --sn:    'IBM Plex Sans', system-ui, sans-serif;
+    }
+    html, body {
+      height: 100%; width: 100%;
+      font-family: var(--sn);
+      background: var(--bg);
+      color: var(--tx);
+      overflow: hidden;
+    }
+
+    /* ── Screens ── */
+    .screen { display: none; flex-direction: column; height: 100vh; }
+    .screen.active { display: flex; }
+
+    /* ── Header ── */
+    .hdr {
+      background: var(--sf);
+      border-bottom: 1px solid var(--bd);
+      padding: 14px 18px;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .hdr-logo { font-family: var(--mn); font-size: 13px; font-weight: 700; letter-spacing: 3px; color: var(--ac); }
+    .hdr-sub  { font-size: 10px; letter-spacing: 1.5px; color: var(--t2); text-transform: uppercase; margin-top: 2px; }
+    .hdr-right { text-align: right; }
+    .hdr-time { font-family: var(--mn); font-size: 14px; color: var(--t2); }
+    .hdr-shift { font-size: 9px; color: var(--t3); text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+
+    /* ── Status dot ── */
+    .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+    .dot.gn { background: var(--gn); box-shadow: 0 0 6px rgba(0,230,118,.5); }
+    .dot.am { background: var(--am); box-shadow: 0 0 6px rgba(240,165,0,.5); }
+    .dot.rd { background: var(--rd); box-shadow: 0 0 6px rgba(255,77,109,.5); }
+
+    /* ── Body ── */
+    .body { flex: 1; padding: 20px 18px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--sf2);
+      border: 1px solid var(--bd);
+      border-radius: 14px;
+      padding: 20px;
+    }
+    .card.accent-gn { border-color: rgba(0,230,118,.35); background: rgba(0,230,118,.04); }
+    .card.accent-am { border-color: rgba(240,165,0,.35); background: rgba(240,165,0,.04); }
+    .card.accent-ac { border-color: rgba(0,200,255,.35); background: rgba(0,200,255,.04); }
+    .card.accent-rd { border-color: rgba(255,77,109,.35); background: rgba(255,77,109,.04); }
+
+    /* ── Labels ── */
+    .label { font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--t2); margin-bottom: 5px; }
+    .val   { font-family: var(--mn); font-size: 28px; font-weight: 700; color: var(--tx); line-height: 1.1; }
+    .val.xl{ font-size: 36px; }
+    .val.sm{ font-size: 16px; }
+    .val.ac{ color: var(--ac); }
+    .val.gn{ color: var(--gn); }
+    .val.am{ color: var(--am); }
+    .val.rd{ color: var(--rd); }
+
+    .row   { display: flex; gap: 12px; }
+    .col   { flex: 1; display: flex; flex-direction: column; }
+
+    /* ── Big action button ── */
+    .btn-action {
+      width: 100%; padding: 22px;
+      border-radius: 14px; border: none; cursor: pointer;
+      font-family: var(--sn); font-size: 22px; font-weight: 800;
+      letter-spacing: .5px;
+      transition: all .12s; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+    }
+    .btn-action:active { transform: scale(.97); }
+    .btn-action.gn  { background: var(--gn);  color: #0a0e17; }
+    .btn-action.am  { background: var(--am);  color: #0a0e17; }
+    .btn-action.ac  { background: var(--ac);  color: #0a0e17; }
+    .btn-action.rd  { background: var(--rd);  color: #fff; }
+    .btn-action.sf  { background: var(--sf2); color: var(--t2); border: 1px solid var(--bd); font-size: 16px; padding: 15px; }
+
+    /* ── Small buttons ── */
+    .btn-sm {
+      padding: 14px 10px; border-radius: 10px; border: 2px solid var(--bd);
+      background: var(--sf2); color: var(--t2);
+      font-family: var(--mn); font-size: 18px; font-weight: 700;
+      cursor: pointer; text-align: center; transition: all .12s; flex: 1;
+    }
+    .btn-sm:active  { transform: scale(.95); }
+    .btn-sm.sel     { border-color: var(--ac); background: rgba(0,200,255,.12); color: var(--ac); }
+
+    /* ── Input ── */
+    .inp {
+      background: var(--sf); border: 1px solid var(--bd); border-radius: 8px;
+      padding: 14px 16px; color: var(--tx);
+      font-family: var(--mn); font-size: 22px; font-weight: 600;
+      width: 100%; text-transform: uppercase; letter-spacing: 2px;
+    }
+    .inp:focus { outline: none; border-color: var(--ac); }
+    .inp::placeholder { color: var(--t3); font-size: 16px; letter-spacing: 0; }
+
+    select.inp { font-size: 18px; letter-spacing: 0; }
+
+    /* ── Operator selector ── */
+    .op-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .op-btn {
+      padding: 28px 16px; border-radius: 14px;
+      border: 2px solid var(--bd); background: var(--sf2);
+      color: var(--t2); cursor: pointer; text-align: center;
+      transition: all .15s;
+    }
+    .op-btn .icon { font-size: 42px; margin-bottom: 8px; display: block; }
+    .op-btn .name { font-size: 20px; font-weight: 700; color: var(--tx); }
+    .op-btn .role { font-size: 11px; color: var(--t2); margin-top: 2px; text-transform: uppercase; letter-spacing: 1px; }
+    .op-btn:active { transform: scale(.97); }
+    .op-btn.sel    { border-color: var(--ac); background: rgba(0,200,255,.08); }
+
+    /* ── Badge ── */
+    .badge {
+      display: inline-block; padding: 4px 10px; border-radius: 20px;
+      font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+    }
+    .badge.full { background: rgba(0,200,255,.12); color: var(--ac); }
+    .badge.mt   { background: rgba(107,130,160,.15); color: var(--t2); }
+    .badge.s40  { background: rgba(240,165,0,.15); color: var(--am); }
+    .badge.s20  { background: rgba(0,200,255,.1); color: var(--ac); }
+
+    /* ── Queue item ── */
+    .task-item {
+      background: var(--sf); border: 1px solid var(--bd);
+      border-radius: 10px; padding: 14px 16px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .task-num { font-family: var(--mn); font-size: 11px; color: var(--t3); min-width: 20px; }
+    .task-body { flex: 1; }
+    .task-cont { font-family: var(--mn); font-size: 14px; font-weight: 700; color: var(--tx); }
+    .task-meta { font-size: 11px; color: var(--t2); margin-top: 2px; }
+    .task-prio { font-size: 20px; }
+
+    /* ── Horómetro input ── */
+    .hor-wrap { display: flex; flex-direction: column; gap: 6px; }
+    .hor-label { font-size: 10px; color: var(--t2); letter-spacing: 1px; text-transform: uppercase; }
+    .hor-inp {
+      background: var(--sf); border: 2px solid var(--am);
+      border-radius: 10px; padding: 16px;
+      font-family: var(--mn); font-size: 28px; font-weight: 700;
+      color: var(--am); text-align: center; width: 100%;
+      letter-spacing: 3px;
+    }
+    .hor-inp:focus { outline: none; border-color: var(--ac); color: var(--tx); }
+
+    /* ── Stats ── */
+    .stat-row { display: flex; gap: 8px; }
+    .stat-box { flex: 1; background: var(--sf); border: 1px solid var(--bd); border-radius: 10px; padding: 12px; text-align: center; }
+    .stat-n { font-family: var(--mn); font-size: 26px; font-weight: 700; }
+    .stat-l { font-size: 9px; color: var(--t2); text-transform: uppercase; letter-spacing: 1px; margin-top: 3px; }
+
+    /* ── Footer ── */
+    .footer {
+      background: var(--sf); border-top: 1px solid var(--bd);
+      padding: 14px 18px; flex-shrink: 0;
+      display: flex; gap: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════
+     PANTALLA 1 — SELECCIÓN DE OPERADOR
+     ════════════════════════════════════════ -->
+<div id="s-login" class="screen active">
+  <div class="hdr">
+    <div>
+      <div class="hdr-logo">CCTI RS</div>
+      <div class="hdr-sub">ReachStacker · Depósito Maipú</div>
+    </div>
+    <div class="hdr-right">
+      <div class="hdr-time" id="clk-login">--:--</div>
+      <div class="hdr-shift" id="date-login">--</div>
+    </div>
+  </div>
+
+  <div class="body">
+    <div class="card">
+      <div class="label">¿Quién opera hoy?</div>
+    </div>
+
+    <div class="op-grid">
+      <div class="op-btn" onclick="selectOp('Joel','Operador RS1')">
+        <span class="icon">👷</span>
+        <div class="name">Joel</div>
+        <div class="role">Operador RS1</div>
+      </div>
+      <div class="op-btn" onclick="selectOp('Alexis','Operador RS2')">
+        <span class="icon">👷</span>
+        <div class="name">Alexis</div>
+        <div class="role">Operador RS2</div>
+      </div>
+      <div class="op-btn" onclick="selectOp('Otro','Operador')">
+        <span class="icon">🙋</span>
+        <div class="name">Otro</div>
+        <div class="role">Ingresar nombre</div>
+      </div>
+    </div>
+
+    <!-- Nombre manual -->
+    <div id="other-name-wrap" style="display:none;" class="card">
+      <div class="label">Nombre del operador</div>
+      <input class="inp" id="other-name" placeholder="Tu nombre" type="text" style="margin-top:8px;">
+    </div>
+
+    <!-- Horómetro inicial -->
+    <div id="hor-wrap" style="display:none;" class="card accent-am">
+      <div class="hor-wrap">
+        <div class="hor-label">⏱ Horómetro inicial (horas)</div>
+        <input class="hor-inp" id="hor-start" type="number" inputmode="decimal" placeholder="1234.5">
+      </div>
+      <div style="font-size:11px;color:var(--t2);margin-top:10px;">
+        Regístralo desde el panel de la máquina antes de arrancar.
+      </div>
+    </div>
+  </div>
+
+  <div class="footer" id="login-footer" style="display:none;">
+    <button class="btn-action gn" onclick="startShift()" style="font-size:18px;">
+      ✅ Iniciar Turno
+    </button>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════
+     PANTALLA 2 — LIBRE / COLA DE TAREAS
+     ════════════════════════════════════════ -->
+<div id="s-idle" class="screen">
+  <div class="hdr">
+    <div>
+      <div class="hdr-logo"><span class="dot gn" id="status-dot"></span><span id="op-name-hdr">Joel</span></div>
+      <div class="hdr-sub" id="shift-start-lbl">Turno iniciado --:--</div>
+    </div>
+    <div class="hdr-right">
+      <div class="hdr-time" id="clk-idle">--:--</div>
+      <div class="hdr-shift" id="date-idle">--</div>
+    </div>
+  </div>
+
+  <div class="body">
+    <!-- Stats del turno -->
+    <div class="stat-row">
+      <div class="stat-box">
+        <div class="stat-n gn" id="moves-count">0</div>
+        <div class="stat-l">Movimientos</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-n am" id="queue-count">0</div>
+        <div class="stat-l">En cola</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-n ac" id="shift-hrs">0:00</div>
+        <div class="stat-l">Horas turno</div>
+      </div>
+    </div>
+
+    <!-- Estado: libre -->
+    <div id="no-tasks" class="card accent-gn" style="text-align:center;padding:32px 20px;">
+      <div style="font-size:48px;margin-bottom:12px;">🟢</div>
+      <div style="font-size:20px;font-weight:700;color:var(--gn);">Sin tareas pendientes</div>
+      <div style="font-size:13px;color:var(--t2);margin-top:6px;">Esperando orden del Gate Control</div>
+    </div>
+
+    <!-- Cola de tareas -->
+    <div id="task-queue" style="display:none;">
+      <div class="label" style="margin-bottom:8px;">📋 Cola de tareas</div>
+      <div id="queue-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <button class="btn-action sf" onclick="endShift()" style="flex:0 0 auto;width:auto;padding:15px 20px;font-size:14px;">
+      🔚 Fin turno
+    </button>
+    <button class="btn-action gn" id="start-task-btn" onclick="startNextTask()" style="display:none;">
+      ▶ INICIAR TAREA
+    </button>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════
+     PANTALLA 3A — TOMAR CONTENEDOR
+     ════════════════════════════════════════ -->
+<div id="s-take" class="screen">
+  <div class="hdr">
+    <div>
+      <div class="hdr-logo"><span class="dot am"></span><span id="op-take-hdr">Joel</span></div>
+      <div class="hdr-sub">EN TAREA</div>
+    </div>
+    <div class="hdr-right">
+      <div class="hdr-time" id="clk-take">--:--</div>
+    </div>
+  </div>
+
+  <div class="body">
+    <div class="card accent-am">
+      <div class="label">📦 Contenedor a tomar</div>
+      <div class="val xl am" id="take-cont" style="margin:10px 0 6px;">MSCU 1234567</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
+        <span class="badge s40" id="take-sz">40'</span>
+        <span class="badge full" id="take-est">FULL</span>
+        <span class="badge" id="take-tipo" style="background:rgba(107,130,160,.15);color:var(--t2);">PROPIO</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="label">📍 Está en</div>
+      <div class="val ac" id="take-from" style="margin-top:6px;">C · 05 · F1</div>
+      <div class="val sm" style="color:var(--t2);margin-top:4px;" id="take-from-full">Bloque C · Posición 5 · Fondo 1</div>
+    </div>
+
+    <div class="card accent-ac">
+      <div class="label">💬 Instrucción</div>
+      <div style="font-size:15px;color:var(--t2);margin-top:6px;line-height:1.5;" id="take-note">
+        Sin instrucción adicional.
+      </div>
+    </div>
+  </div>
+
+  <div class="footer" style="flex-direction:column;gap:10px;">
+    <button class="btn-action am" onclick="confirmTaken()">
+      🔒 TOMADO — Confirmar levante
+    </button>
+    <button class="btn-action sf" onclick="cancelTask()">
+      ✕ No puedo realizar esta tarea
+    </button>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════
+     PANTALLA 3B — DEPOSITAR
+     ════════════════════════════════════════ -->
+<div id="s-drop" class="screen">
+  <div class="hdr">
+    <div>
+      <div class="hdr-logo"><span class="dot rd"></span><span id="op-drop-hdr">Joel</span></div>
+      <div class="hdr-sub">DEPOSITANDO</div>
+    </div>
+    <div class="hdr-right">
+      <div class="hdr-time" id="clk-drop">--:--</div>
+    </div>
+  </div>
+
+  <div class="body">
+    <!-- Contenedor en aire -->
+    <div class="card accent-rd">
+      <div class="label">🏗 En el spreader</div>
+      <div class="val xl rd" id="drop-cont" style="margin:8px 0 4px;">MSCU 1234567</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <span class="badge s40" id="drop-sz">40'</span>
+        <span class="badge full" id="drop-est">FULL</span>
+      </div>
+    </div>
+
+    <!-- Selección de destino -->
+    <div class="card">
+      <div class="label" style="margin-bottom:12px;">📍 ¿Dónde lo depositas?</div>
+
+      <!-- Bloque -->
+      <div class="label" style="margin-bottom:6px;">Bloque</div>
+      <div class="row" style="flex-wrap:wrap;gap:8px;margin-bottom:16px;" id="blk-btns">
+        <button class="btn-sm" onclick="selBlk(this,'A')">A</button>
+        <button class="btn-sm" onclick="selBlk(this,'B')">B</button>
+        <button class="btn-sm" onclick="selBlk(this,'C')">C</button>
+        <button class="btn-sm" onclick="selBlk(this,'D')">D</button>
+        <button class="btn-sm" onclick="selBlk(this,'X3')">X3</button>
+        <button class="btn-sm" onclick="selBlk(this,'P1')">P1</button>
+      </div>
+
+      <!-- Posición -->
+      <div class="row" style="gap:12px;">
+        <div class="col">
+          <div class="label" style="margin-bottom:6px;">Posición</div>
+          <input class="inp" id="drop-pos" type="number" inputmode="numeric" min="1" max="16" placeholder="05" style="font-size:24px;text-align:center;padding:12px;">
+        </div>
+        <div class="col">
+          <div class="label" style="margin-bottom:6px;">Fondo</div>
+          <select class="inp" id="drop-fd" style="padding:12px;font-size:18px;">
+            <option value="1">F1</option>
+            <option value="2">F2</option>
+            <option value="3">F3</option>
+            <option value="4">F4</option>
+          </select>
+        </div>
+        <div class="col">
+          <div class="label" style="margin-bottom:6px;">Piso</div>
+          <select class="inp" id="drop-piso" style="padding:12px;font-size:18px;">
+            <option value="1">P1</option>
+            <option value="2">P2</option>
+            <option value="3">P3</option>
+            <option value="4">P4</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Posición confirmada -->
+    <div class="card accent-gn" id="drop-preview" style="display:none;text-align:center;padding:16px;">
+      <div class="label">Destino seleccionado</div>
+      <div class="val gn" id="drop-dest-preview" style="margin-top:6px; font-size:22px;">--</div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <button class="btn-action gn" onclick="confirmDrop()">
+      ✅ DEPOSITADO
+    </button>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════
+     PANTALLA 4 — FIN DE TURNO
+     ════════════════════════════════════════ -->
+<div id="s-end" class="screen">
+  <div class="hdr">
+    <div>
+      <div class="hdr-logo">🔚 Cierre de Turno</div>
+      <div class="hdr-sub" id="end-op-name">Joel · Turno</div>
+    </div>
+    <div class="hdr-right">
+      <div class="hdr-time" id="clk-end">--:--</div>
+    </div>
+  </div>
+
+  <div class="body">
+    <!-- Horómetro final -->
+    <div class="card accent-am">
+      <div class="hor-wrap">
+        <div class="hor-label">⏱ Horómetro final (horas)</div>
+        <input class="hor-inp" id="hor-end" type="number" inputmode="decimal" placeholder="1240.3">
+      </div>
+    </div>
+
+    <!-- Resumen turno -->
+    <div class="card">
+      <div class="label" style="margin-bottom:12px;">📊 Resumen del turno</div>
+      <div class="stat-row">
+        <div class="stat-box">
+          <div class="stat-n gn" id="end-moves">0</div>
+          <div class="stat-l">Movimientos</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-n ac" id="end-hrs">0:00</div>
+          <div class="stat-l">Horas turno</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-n am" id="end-hor-delta">-</div>
+          <div class="stat-l">Hrs máquina</div>
+        </div>
+      </div>
+      <div style="margin-top:12px;font-size:12px;color:var(--t2);line-height:1.6;" id="end-detail"></div>
+    </div>
+
+    <div class="card accent-gn">
+      <div style="font-size:13px;color:var(--t2);line-height:1.6;">
+        Los datos se guardarán en el registro del depósito. El TOS actualizará automáticamente las posiciones de los contenedores movidos.
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <button class="btn-action gn" onclick="confirmEndShift()">
+      ✅ Confirmar cierre de turno
+    </button>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════
+     PANTALLA 5 — CONFIRMACIÓN FINAL
+     ════════════════════════════════════════ -->
+<div id="s-done" class="screen">
+  <div class="body" style="align-items:center;justify-content:center;text-align:center;gap:20px;">
+    <div style="font-size:80px;">✅</div>
+    <div style="font-size:24px;font-weight:700;color:var(--gn);">Turno cerrado</div>
+    <div style="font-size:14px;color:var(--t2);line-height:1.7;" id="done-summary"></div>
+    <button class="btn-action sf" onclick="resetApp()" style="margin-top:20px;font-size:16px;">
+      🔄 Nuevo turno
+    </button>
+  </div>
+</div>
+
+
+<script>
+// ── Estado global ─────────────────────────────────────────────────────────────
+const S = {
+  op: null, role: null,
+  horStart: null, horEnd: null,
+  shiftStart: null,
+  moves: 0,
+  queue: [],
+  currentTask: null,
+  selBlk: null,
+  logs: []
+};
+
+// ── Demo tasks (simuladas hasta integración con TOS) ─────────────────────────
+const DEMO_TASKS = [
+  { id:'T001', cont:'MSCU1234567', sz:'40', est:'full', tipo:'PROPIO', from:'C-05-F1', note:'Despacho camión PPB-1234' },
+  { id:'T002', cont:'HLXU8876543', sz:'20', est:'full', tipo:'ARRIENDO', from:'A-08-F2', note:'Reorganización bloque A' },
+  { id:'T003', cont:'CMAU0012345', sz:'40', est:'mt',   tipo:'NAVIERA', from:'D-03-F3', note:'' }
+];
+
+// ── Clock ────────────────────────────────────────────────────────────────────
+function tick() {
+  const now = new Date();
+  const t = now.toLocaleTimeString('es-CL', { hour:'2-digit', minute:'2-digit' });
+  const d = now.toLocaleDateString('es-CL', { weekday:'short', day:'numeric', month:'short' });
+  ['login','idle','take','drop','end'].forEach(id => {
+    const ce = document.getElementById('clk-'+id);
+    const de = document.getElementById('date-'+id);
+    if (ce) ce.textContent = t;
+    if (de) de.textContent = d;
+  });
+  // shift hours
+  if (S.shiftStart) {
+    const diff = Math.floor((Date.now() - S.shiftStart) / 60000);
+    const h = Math.floor(diff/60), m = diff%60;
+    const str = h + ':' + String(m).padStart(2,'0');
+    const el = document.getElementById('shift-hrs');
+    if (el) el.textContent = str;
+    const ee = document.getElementById('end-hrs');
+    if (ee) ee.textContent = str;
+  }
+  // Drop preview
+  updateDropPreview();
+}
+setInterval(tick, 1000); tick();
+
+// ── Navigation ───────────────────────────────────────────────────────────────
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ── Login ─────────────────────────────────────────────────────────────────────
+function selectOp(name, role) {
+  document.querySelectorAll('.op-btn').forEach(b => b.classList.remove('sel'));
+  event.currentTarget.classList.add('sel');
+  S.op = name; S.role = role;
+
+  const otherWrap = document.getElementById('other-name-wrap');
+  if (name === 'Otro') {
+    otherWrap.style.display = 'block';
+    document.getElementById('other-name').focus();
+  } else {
+    otherWrap.style.display = 'none';
+  }
+
+  document.getElementById('hor-wrap').style.display = 'block';
+  document.getElementById('login-footer').style.display = 'flex';
+}
+
+function startShift() {
+  const name = S.op === 'Otro'
+    ? (document.getElementById('other-name').value.trim() || 'Operador')
+    : S.op;
+  S.op = name;
+  S.horStart = parseFloat(document.getElementById('hor-start').value) || null;
+  S.shiftStart = Date.now();
+  S.moves = 0;
+
+  // Cargar demo tasks
+  S.queue = [...DEMO_TASKS];
+
+  // Actualizar UI
+  document.getElementById('op-name-hdr').textContent = name;
+  document.getElementById('op-take-hdr').textContent = name;
+  document.getElementById('op-drop-hdr').textContent = name;
+  document.getElementById('shift-start-lbl').textContent =
+    'Turno iniciado ' + new Date().toLocaleTimeString('es-CL', {hour:'2-digit',minute:'2-digit'});
+
+  S.logs.push({ t: new Date().toISOString(), event:'INICIO_TURNO', op:S.op, hor:S.horStart });
+
+  updateIdleScreen();
+  show('s-idle');
+}
+
+// ── Idle / Queue ──────────────────────────────────────────────────────────────
+function updateIdleScreen() {
+  document.getElementById('moves-count').textContent = S.moves;
+  document.getElementById('queue-count').textContent = S.queue.length;
+
+  const noTasks = document.getElementById('no-tasks');
+  const qDiv    = document.getElementById('task-queue');
+  const startBtn = document.getElementById('start-task-btn');
+
+  if (S.queue.length === 0) {
+    noTasks.style.display = 'block';
+    qDiv.style.display = 'none';
+    startBtn.style.display = 'none';
+  } else {
+    noTasks.style.display = 'none';
+    qDiv.style.display = 'block';
+    startBtn.style.display = 'flex';
+
+    const list = document.getElementById('queue-list');
+    list.innerHTML = '';
+    S.queue.forEach((t, i) => {
+      const fromParts = t.from.split('-');
+      const fromStr = `Bl.${fromParts[0]} · Pos ${parseInt(fromParts[1])} · ${fromParts[2]}`;
+      const prio = i === 0 ? '🔴' : i === 1 ? '🟡' : '⚪';
+      list.innerHTML += `
+        <div class="task-item">
+          <div class="task-prio">${prio}</div>
+          <div class="task-body">
+            <div class="task-cont">${t.cont} <span style="font-size:10px;color:var(--t2)">${t.sz}' · ${t.est.toUpperCase()}</span></div>
+            <div class="task-meta">Desde: ${fromStr} ${t.note ? '· '+t.note : ''}</div>
+          </div>
+          <div class="task-num">#${i+1}</div>
+        </div>`;
+    });
+  }
+}
+
+function startNextTask() {
+  if (S.queue.length === 0) return;
+  S.currentTask = S.queue[0];
+  const t = S.currentTask;
+  const fromParts = t.from.split('-');
+
+  document.getElementById('take-cont').textContent = t.cont;
+  document.getElementById('take-sz').textContent   = t.sz + "'";
+  document.getElementById('take-sz').className     = 'badge s' + t.sz;
+  document.getElementById('take-est').textContent  = t.est === 'full' ? 'FULL' : 'VACÍO';
+  document.getElementById('take-est').className    = 'badge ' + t.est;
+  document.getElementById('take-tipo').textContent = t.tipo;
+  document.getElementById('take-from').textContent =
+    `${fromParts[0]} · ${parseInt(fromParts[1])} · ${fromParts[2]}`;
+  document.getElementById('take-from-full').textContent =
+    `Bloque ${fromParts[0]} · Posición ${parseInt(fromParts[1])} · Fondo ${parseInt(fromParts[2].replace('F',''))}`;
+  document.getElementById('take-note').textContent = t.note || 'Sin instrucción adicional.';
+
+  S.logs.push({ t: new Date().toISOString(), event:'INICIO_TAREA', task_id: t.id, cont: t.cont, from: t.from });
+  show('s-take');
+}
+
+function confirmTaken() {
+  const t = S.currentTask;
+  S.logs.push({ t: new Date().toISOString(), event:'TOMADO', task_id: t.id, cont: t.cont });
+
+  // Preparar pantalla drop
+  document.getElementById('drop-cont').textContent = t.cont;
+  document.getElementById('drop-sz').textContent   = t.sz + "'";
+  document.getElementById('drop-sz').className     = 'badge s' + t.sz;
+  document.getElementById('drop-est').textContent  = t.est === 'full' ? 'FULL' : 'VACÍO';
+  document.getElementById('drop-est').className    = 'badge ' + t.est;
+
+  // Reset selección
+  S.selBlk = null;
+  document.querySelectorAll('#blk-btns .btn-sm').forEach(b => b.classList.remove('sel'));
+  document.getElementById('drop-pos').value = '';
+  document.getElementById('drop-fd').value = '1';
+  document.getElementById('drop-piso').value = '1';
+  document.getElementById('drop-preview').style.display = 'none';
+
+  show('s-drop');
+}
+
+function cancelTask() {
+  const t = S.currentTask;
+  S.logs.push({ t: new Date().toISOString(), event:'CANCELADO', task_id: t.id, motivo:'Operador no puede ejecutar' });
+  // Devolver tarea al final de la cola
+  S.queue.push(S.queue.shift());
+  S.currentTask = null;
+  updateIdleScreen();
+  show('s-idle');
+}
+
+// ── Drop ──────────────────────────────────────────────────────────────────────
+function selBlk(btn, blk) {
+  document.querySelectorAll('#blk-btns .btn-sm').forEach(b => b.classList.remove('sel'));
+  btn.classList.add('sel');
+  S.selBlk = blk;
+  updateDropPreview();
+}
+
+function updateDropPreview() {
+  if (!S.selBlk) return;
+  const pos  = document.getElementById('drop-pos')?.value;
+  const fd   = document.getElementById('drop-fd')?.value;
+  const piso = document.getElementById('drop-piso')?.value;
+  if (!pos) return;
+  const preview = `${S.selBlk} · ${String(pos).padStart(2,'0')} · F${fd} · P${piso}`;
+  const el = document.getElementById('drop-dest-preview');
+  if (el) el.textContent = preview;
+  const pw = document.getElementById('drop-preview');
+  if (pw) pw.style.display = 'block';
+}
+
+// Listeners para actualizar preview en tiempo real
+['drop-pos','drop-fd','drop-piso'].forEach(id => {
+  document.addEventListener('DOMContentLoaded', () => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('change', updateDropPreview);
+  });
+});
+document.addEventListener('input', e => {
+  if (['drop-pos','drop-fd','drop-piso'].includes(e.target.id)) updateDropPreview();
+});
+
+function confirmDrop() {
+  const pos  = document.getElementById('drop-pos').value;
+  const fd   = document.getElementById('drop-fd').value;
+  const piso = document.getElementById('drop-piso').value;
+
+  if (!S.selBlk || !pos) {
+    alert('Selecciona bloque y posición antes de confirmar.');
+    return;
+  }
+
+  const dest = `${S.selBlk}-${String(pos).padStart(2,'0')}-F${fd}-P${piso}`;
+  const t = S.currentTask;
+
+  S.logs.push({
+    t: new Date().toISOString(),
+    event: 'DEPOSITADO',
+    task_id: t.id,
+    cont: t.cont,
+    from: t.from,
+    to: dest,
+    op: S.op
+  });
+
+  S.moves++;
+  S.queue.shift(); // quitar de la cola
+  S.currentTask = null;
+  S.selBlk = null;
+
+  updateIdleScreen();
+  show('s-idle');
+
+  // Flash success
+  const stat = document.getElementById('moves-count');
+  stat.style.color = 'var(--gn)';
+  setTimeout(() => stat.style.color = '', 1000);
+}
+
+// ── End shift ─────────────────────────────────────────────────────────────────
+function endShift() {
+  document.getElementById('end-op-name').textContent = S.op + ' · Turno';
+  document.getElementById('end-moves').textContent = S.moves;
+
+  const diff = Math.floor((Date.now() - S.shiftStart) / 60000);
+  const h = Math.floor(diff/60), m = diff%60;
+  document.getElementById('end-hrs').textContent = h + ':' + String(m).padStart(2,'0');
+
+  const startT = new Date(S.shiftStart).toLocaleTimeString('es-CL', {hour:'2-digit',minute:'2-digit'});
+  const endT   = new Date().toLocaleTimeString('es-CL', {hour:'2-digit',minute:'2-digit'});
+  document.getElementById('end-detail').innerHTML =
+    `Inicio: <b>${startT}</b> &nbsp;|&nbsp; Fin: <b>${endT}</b><br>` +
+    (S.horStart ? `Horómetro inicial: <b>${S.horStart} hrs</b>` : '');
+
+  document.getElementById('hor-end').value = '';
+  document.getElementById('end-hor-delta').textContent = '-';
+  show('s-end');
+}
+
+document.getElementById('hor-end').addEventListener('input', () => {
+  const end = parseFloat(document.getElementById('hor-end').value);
+  if (S.horStart && end && end > S.horStart) {
+    const delta = (end - S.horStart).toFixed(1);
+    document.getElementById('end-hor-delta').textContent = delta + 'h';
+  }
+});
+
+function confirmEndShift() {
+  const horEnd = parseFloat(document.getElementById('hor-end').value) || null;
+  S.horEnd = horEnd;
+
+  const diff = Math.floor((Date.now() - S.shiftStart) / 60000);
+  const h = Math.floor(diff/60), m = diff%60;
+  const horDelta = (S.horStart && horEnd && horEnd > S.horStart)
+    ? (horEnd - S.horStart).toFixed(1) + ' hrs máquina'
+    : 'Sin registro horómetro';
+
+  S.logs.push({
+    t: new Date().toISOString(),
+    event: 'FIN_TURNO',
+    op: S.op,
+    horEnd,
+    moves: S.moves,
+    shiftHrs: (diff/60).toFixed(2)
+  });
+
+  // Mostrar resumen
+  document.getElementById('done-summary').innerHTML =
+    `<b>${S.op}</b><br>` +
+    `${S.moves} movimientos realizados<br>` +
+    `Turno: ${h}h ${m}m<br>` +
+    `${horDelta}<br><br>` +
+    `<span style="color:var(--t3);font-size:11px;">Datos guardados en registro del depósito</span>`;
+
+  // Aquí se conectará con Google Sheets / TOS CCTI
+  console.log('TURNO COMPLETO:', JSON.stringify(S.logs, null, 2));
+
+  show('s-done');
+}
+
+function resetApp() {
+  S.op = null; S.role = null;
+  S.horStart = null; S.horEnd = null;
+  S.shiftStart = null; S.moves = 0;
+  S.queue = []; S.currentTask = null; S.selBlk = null;
+  S.logs = [];
+
+  document.querySelectorAll('.op-btn').forEach(b => b.classList.remove('sel'));
+  document.getElementById('hor-start').value = '';
+  document.getElementById('other-name').value = '';
+  document.getElementById('other-name-wrap').style.display = 'none';
+  document.getElementById('hor-wrap').style.display = 'none';
+  document.getElementById('login-footer').style.display = 'none';
+
+  show('s-login');
+}
+</script>
+</body>
+</html>
